@@ -151,7 +151,7 @@ function preCleanFromPackIdxs() {
 	done
 	LARGE_SHAS=${LARGE_SHAS%|}
 	
-	computeFilesCanBeDeleted $shas
+	computeFilesCanBeDeleted $LARGE_SHAS
 	echo "可以清除的文件有: ${!DELETABLE_FILES[@]}"
 }
 
