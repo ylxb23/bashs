@@ -124,7 +124,8 @@ function doCleanRepo() {
 	
 	rm -Rf .git/refs/original &> /dev/null
 	rm -Rf .git/logs &> /dev/null
-	git gc &> /dev/null
+	git gc --prune=now --aggressive &> /dev/null
+	git repack -ad &> /dev/null
 	
 	# 计算清理后仓库大小并打印
 	echo "清理后仓库大小: $(getRepoSize)"
