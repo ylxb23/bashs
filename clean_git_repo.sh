@@ -117,7 +117,7 @@ function doCleanRepo() {
 		# 文件可以清除，执行清除命令
 		let count++
 		echo ">>>>>>>>>> 执行清除命令($count/$total): $clean"
-		git filter-branch -f --index-filter "git rm -f --cached --ignore-unmatch $clean" -- --all 2>&1 >> $CURR_DIR/repo_clean_history.log
+		git filter-branch -f --index-filter "git rm -f --cached --ignore-unmatch $clean" -- --all &>> $CURR_DIR/repo_clean_history.log
 		echo ">>>>>>>>>> 已清除($count/$total): $clean"
 	done
 	echo "=================================================================="
@@ -156,6 +156,39 @@ function preCleanFromPackIdxs() {
 	echo "可以清除的文件有: ${!DELETABLE_FILES[@]}"
 }
 
+function doPushToRemote() {
+	echo "=================================================="
+	remote_branchs_lines=`git branch -a | grep "remotes/origin" | grep -v "remotes/origin/HEAD " `
+	# 远程分支数组
+	remote_branchs=(`echo ${remote_branchs_lines} | tr " " " "`)
+	echo ">>> 共有 ${#remote_branchs[@]} 个远程分支"
+
+	for branch in ${remote_branchs[@]}
+	do
+		name=${branch/remotes\/origin\//}
+		git checkout -b ${name} --track "origin/${name}" &> /dev/null
+	done
+
+	git push -f --all &> /dev/null
+	result=$?
+	if [ $result = 0 ]; then
+		echo "清理结果推送远端成功！！！"
+	else
+		echo "清理结果推送远端失败！！！"
+	fi
+
+	git checkout master  &> /dev/null
+	
+	for branch in ${remote_branchs[@]}
+	do
+		name=${branch/remotes\/origin\//}
+		if [ $name != "master" ]; then
+			git branch -D $name  &> /dev/null
+		fi
+	done
+	echo "=================================================="
+}
+
 function help() {
 	echo ""
 	echo ""
@@ -186,6 +219,8 @@ preCleanFromPackIdxs
 
 # 执行仓库清理
 doCleanRepo
+
+
 
 echo "结束时间：$(date)"
 # 切回当前路径
